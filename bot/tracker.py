@@ -88,9 +88,11 @@ class SnipeTracker:
 
     def history(self, oldest: float):
         cursor = None
+        # Slack rejects oldest="0.000000" (invalid_ts_oldest), so leave it out to read all history.
+        window = {"oldest": f"{oldest:.6f}"} if oldest else {}
         while True:
             resp = self.client.conversations_history(
-                channel=self.channel, oldest=f"{oldest:.6f}", limit=200, cursor=cursor
+                channel=self.channel, limit=200, cursor=cursor, **window
             )
             yield from resp["messages"]
             cursor = (resp.get("response_metadata") or {}).get("next_cursor")

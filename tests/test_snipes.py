@@ -197,7 +197,8 @@ class FakeClient:
         self.messages = list(messages)
         self.posted, self.reacted = [], []
 
-    def conversations_history(self, channel, oldest, limit, cursor=None):
+    def conversations_history(self, channel, limit, cursor=None, oldest="0"):
+        assert float(oldest) > 0 or oldest == "0", "Slack rejects oldest=0.000000"
         return {"messages": [m for m in self.messages if float(m["ts"]) >= float(oldest)]}
 
     def users_info(self, user):
