@@ -6,7 +6,8 @@ from slack_sdk.errors import SlackApiError
 from bot.config import Config
 from bot.snipes import Snipe, parse_snipe
 from bot.stats import (best_day, last_report_due, month_start, player_card, ranked, report, sniped_counts,
-                       snipe_counts, top_rivalry, week_window, weekly_report)
+                       rivalries, snipe_counts, week_window, weekly_report)
+from bot.rivals import head_to_head, person_rivals, rivals_board
 from bot.store import Store
 from bot.tracker import SnipeTracker
 
@@ -77,7 +78,7 @@ def test_ranked_shares_ties():
 def test_best_day_and_rivalry():
     user, day, n = best_day(WEEK, TZ)
     assert (user, day.isoformat(), n) == ("A", "2026-09-28", 3)
-    assert top_rivalry(WEEK) == ("A", "B", 2)
+    assert rivalries(WEEK) == [("A", "B", 2, 1)]  # A got B twice, B got A once; B–C is only 1 total
 
 
 def test_weekly_report_contents():
@@ -87,7 +88,7 @@ def test_weekly_report_contents():
     assert ":first_place_medal: <@B> — 3" in text   # most sniped
     assert "Best day:* <@A> got 3 snipes on Monday" in text
     assert f"<https://x/{WEEK[1].ts}|this shot>" in text and "9 reactions" in text
-    assert "<@A> sniped <@B> 2 times" in text
+    assert "Rivalry of the week:* <@A> *2–1* <@B>" in text
 
 
 def test_empty_week():
@@ -100,6 +101,7 @@ def test_player_card():
     assert "*This month:* 1 snipe · sniped 2 times" in card
     assert "*All time:* 1 snipe · sniped 3 times" in card
     assert "Nemesis: <@A> (2)" in card
+    assert "Top rival: <@A> (1–2)" in card
 
 
 def test_month_and_all_time_reports():
@@ -119,6 +121,53 @@ def test_month_boards_show_five_places():
     assert report(many, "week", 0, 1e10, TZ).count("<@U") == 5    # 7-way tie, capped at 5 rows
     lines = report(many, "month", 0, 1e10, TZ).split("*Most Sniped*")[0]
     assert lines.count("<@U") == 5
+
+
+# ---- rivals ----
+
+def _s(sniper, target, day):
+    return Snipe(ts(2026, 10, day), sniper, [target], 0)
+
+
+FEUD = [_s("A", "B", 1), _s("B", "A", 2), _s("A", "B", 3), _s("C", "D", 3), _s("C", "D", 4), _s("A", "C", 5)]
+
+
+def test_rivalries_rank_by_total_then_closeness():
+    assert rivalries(FEUD) == [("A", "B", 2, 1), ("C", "D", 2, 0)]
+
+
+def test_rivals_board():
+    board = rivals_board(FEUD[3:], FEUD)
+    assert "1. <@A> *2–1* <@B> · 3 snipes" in board
+    assert "2. <@C> *2–0* <@D> · 2 snipes _(one-sided)_" in board
+    assert "Hottest this month*\n1. <@C> *2–0* <@D>" in board
+    assert "No rivalries yet" in rivals_board([], [])
+
+
+def test_person_rivals_from_their_side():
+    text = person_rivals("B", FEUD)
+    assert "<@A> — down *1–2*" in text
+    assert "hasn't sniped" in person_rivals("Z", FEUD)
+
+
+def test_head_to_head():
+    text = head_to_head("B", "A", FEUD[2:], FEUD, FEUD, TZ, permalink=lambda t: f"https://x/{t}")
+    assert "*All time:* <@B> *1–2* <@A> · <@A> leads by 1" in text
+    assert "*This week:* <@B> *0–1* <@A>" in text
+    assert f"First blood:* <@A> got <@B> on <https://x/{FEUD[0].ts}|Oct 1, 2026>" in text
+    assert f"Latest:* <@A> got <@B> on <https://x/{FEUD[2].ts}|Oct 3, 2026>" in text
+    assert "never sniped each other" in head_to_head("A", "D", [], [], FEUD, TZ)
+    assert "same person" in head_to_head("A", "A", [], [], FEUD, TZ)
+
+
+def test_tracker_rivals_routes_by_tag_count():
+    now = [float(ts(2026, 10, 7, 9))]
+    client = FakeClient([post(ts(2026, 10, 5)), post(ts(2026, 10, 6), user="U2", text="<@U1>")])
+    tr = make(client, now)
+    tr.sweep()
+    assert "Top Rivalries" in tr.rivals([])
+    assert "<@U1>'s rivals" in tr.rivals(["U1"])
+    assert "Dead even." in tr.rivals(["U1", "U2"])
 
 
 # ---- schedule ----

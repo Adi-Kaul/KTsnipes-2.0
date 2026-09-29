@@ -76,13 +76,24 @@ def most_reacted(snipes: list[Snipe]) -> Snipe | None:
     return best if best and best.reactions > 0 else None
 
 
-def top_rivalry(snipes: list[Snipe]) -> tuple[str, str, int] | None:
-    """The sniper -> target pair that happened most, if anyone got the same person twice."""
-    c = Counter((s.sniper, t) for s in snipes for t in s.targets)
-    if not c:
-        return None
-    (sniper, target), n = min(c.items(), key=lambda kv: (-kv[1], kv[0]))
-    return (sniper, target, n) if n >= 2 else None
+def hits(snipes: list[Snipe]) -> Counter:
+    """(sniper, target) -> how many times the sniper got that target."""
+    return Counter((s.sniper, t) for s in snipes for t in s.targets)
+
+
+def rivalries(snipes: list[Snipe], min_total: int = 2) -> list[tuple[str, str, int, int]]:
+    """Every pair of people who've sniped each other (in either direction) at least min_total times,
+    as (leader, trailer, leader's snipes on trailer, trailer's snipes on leader).
+    Most snipes between them first; on a tie, the closer score first."""
+    h = hits(snipes)
+    out = []
+    for a, b in {tuple(sorted(pair)) for pair in h}:
+        x, y = h[(a, b)], h[(b, a)]
+        if y > x:
+            a, b, x, y = b, a, y, x
+        if x + y >= min_total:
+            out.append((a, b, x, y))
+    return sorted(out, key=lambda r: (-(r[2] + r[3]), r[2] - r[3], r[0], r[1]))
 
 
 # ---- formatting ----
@@ -92,6 +103,11 @@ MEDALS = {1: ":first_place_medal:", 2: ":second_place_medal:", 3: ":third_place_
 
 def at(uid: str) -> str:
     return f"<@{uid}>"
+
+
+def score(a: str, b: str, x: int, y: int) -> str:
+    """@a 7–5 @b"""
+    return f"{at(a)} *{x}–{y}* {at(b)}"
 
 
 def plural(n: int, word: str) -> str:
@@ -153,10 +169,9 @@ def report(snipes: list[Snipe], period: str, start: float, end: float, tz: ZoneI
         shot = f"<{permalink(mr.ts)}|this shot>" if permalink else "this shot"
         highlights.append(f":star-struck: *Most reacted:* {shot} by {at(mr.sniper)} on {victims} "
                           f"({plural(mr.reactions, 'reaction')})")
-    if rv := top_rivalry(snipes):
-        sniper, target, n = rv
+    if rv := rivalries(snipes):
         label = "Biggest rivalry" if period == "all" else f"Rivalry of the {period}"
-        highlights.append(f":crossed_swords: *{label}:* {at(sniper)} sniped {at(target)} {n} times")
+        highlights.append(f":crossed_swords: *{label}:* {score(*rv[0])}")
     if (busy := busiest_day(snipes, tz)) and busy[1] >= 2:
         highlights.append(f":calendar: *Busiest day:* {busy[0]:{day_fmt}} ({plural(busy[1], 'snipe')})")
     if highlights:
@@ -185,4 +200,8 @@ def player_card(uid: str, week: list[Snipe], month: list[Snipe], all_time: list[
     if by:
         nem, n = min(by.items(), key=lambda kv: (-kv[1], kv[0]))
         lines.append(f":smiling_imp: Nemesis: {at(nem)} ({n})")
+    if mine := [r for r in rivalries(all_time) if uid in r[:2]]:
+        a, b, x, y = mine[0]
+        other, mine_n, theirs = (b, x, y) if a == uid else (a, y, x)
+        lines.append(f":crossed_swords: Top rival: {at(other)} ({mine_n}–{theirs})")
     return "\n".join(lines)

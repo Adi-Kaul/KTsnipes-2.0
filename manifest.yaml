@@ -21,6 +21,10 @@ features:
     - command: /snipes-alltime
       description: All-time snipe leaderboard and highlights
       should_escape: false
+    - command: /snipes-rivals
+      description: Top rivalries, someone's rivals, or a head-to-head
+      usage_hint: "[@person] [@person]"
+      should_escape: true
 oauth_config:
   scopes:
     bot:

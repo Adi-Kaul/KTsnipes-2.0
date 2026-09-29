@@ -28,7 +28,7 @@ The manifest sets up everything the bot needs: its name, the `/snipes` commands,
 | `users:read` | To tell people apart from bots, so tagging a bot doesn't count |
 | `reactions:write` | To react 🎯 to snipes it counted |
 | `chat:write` | To post the weekly report |
-| `commands` | For `/snipes`, `/snipes-week`, `/snipes-month`, and `/snipes-alltime` |
+| `commands` | For `/snipes`, `/snipes-week`, `/snipes-month`, `/snipes-alltime`, and `/snipes-rivals` |
 
 It also subscribes to the `message.channels` and `message.groups` events, so the bot hears about new, edited, and deleted posts the moment they happen.
 
@@ -131,7 +131,7 @@ This is the best way to see exactly what everyone will get, without touching #kt
    ```
    (Replace `21:05` with your time. `REPORT_DAY=$(date +%A)` sets it to today.)
 3. In `#bot-test`, post a photo and tag a friend (or two). Within a second you'll see the bot react 🎯.
-4. Try `/snipes-week`, `/snipes-month`, `/snipes-alltime`, and `/snipes @friend`.
+4. Try `/snipes-week`, `/snipes-month`, `/snipes-alltime`, `/snipes @friend`, and `/snipes-rivals @you @friend`.
 5. Edit the post to remove the tag. On the next `/snipes-week`, it's off the board.
 6. When the report time hits, the report shows up in `#bot-test` (within a minute).
 

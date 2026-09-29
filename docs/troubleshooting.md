@@ -58,7 +58,7 @@ Two copies of the bot are running (for example, your laptop and Railway), or the
 **`/snipes` or `/snipes-week` says "dispatch_failed" or "didn't respond"**
 The bot isn't running, or it's connected with an `xapp-` token from a different app. Start the bot and check that `SLACK_APP_TOKEN` belongs to this app.
 
-**`/snipes-week` (or `-month`, `-alltime`) isn't in Slack's autocomplete**
+**`/snipes-week` (or `-month`, `-alltime`, `-rivals`) isn't in Slack's autocomplete**
 The app was installed from an older manifest. Paste the current [`manifest.yaml`](../manifest.yaml) into **App Manifest** in your app's settings, save, and **Reinstall to Workspace**.
 
 **All-time numbers reset after a redeploy**

@@ -73,7 +73,7 @@ Every Sunday at 8pm (Detroit time), the bot posts the week's report in #ktsnipes
 >
 > 🔥 **Best day:** @alex got 4 snipes on Wednesday
 > 🤩 **Most reacted:** [this shot] by @sam on @taylor (18 reactions)
-> ⚔️ **Rivalry of the week:** @alex sniped @taylor 3 times
+> ⚔️ **Rivalry of the week:** @alex **3–1** @taylor
 > 📅 **Busiest day:** Friday (8 snipes)
 
 What each part means:
@@ -84,7 +84,7 @@ What each part means:
 | **Most Sniped** | Most times tagged this week. Top 3 places. |
 | **Best day** | The most snipes one person made in a single day (midnight to midnight). Only shown if it's at least 2. |
 | **Most reacted** | The snipe post with the most total reactions (not counting the bot's 🎯). Links to the post. |
-| **Rivalry of the week** | The sniper who got the same person the most times. Only shown if it happened at least twice. |
+| **Rivalry of the week** | The two people who sniped each other the most, counting both directions, with the score. Only shown if it's at least 2 total. See [Rivalries](#rivalries). |
 | **Busiest day** | The day of the week with the most snipes overall. Only shown if it's at least 2. |
 
 **Ties** share a place. If two people tie for second, they both get 🥈 and the next person is fourth. The boards show at most 5 people.
@@ -103,6 +103,7 @@ Anyone can use these in any channel. **Only you** see the reply, and it doesn't 
 | `/snipes-month` | This month's leaderboard and highlights |
 | `/snipes-alltime` | The all-time leaderboard and highlights |
 | `/snipes @person` | Someone's record for the week, month, and all time |
+| `/snipes-rivals` | The biggest rivalries. Tag one person for their rivals, or two for a head-to-head. |
 
 ### `/snipes-week`, `/snipes-month`, `/snipes-alltime`
 
@@ -129,7 +130,7 @@ Each one is a full report for its period, in the same format as the Sunday repor
 >
 > 🔥 **Best day:** @alex got 5 snipes on Wed Oct 14
 > 🤩 **Most reacted:** [this shot] by @sam on @taylor (31 reactions)
-> ⚔️ **Rivalry of the month:** @alex sniped @taylor 6 times
+> ⚔️ **Rivalry of the month:** @alex **6–4** @taylor
 > 📅 **Busiest day:** Fri Oct 9 (11 snipes)
 
 In the all-time report, the header says when the first snipe on record was ("since Mar 3, 2025"), and the rivalry is called **Biggest rivalry**.
@@ -145,12 +146,63 @@ This month: 14 snipes · sniped 3 times
 All time: 41 snipes · sniped 12 times
 🎯 Favorite target: @taylor (9)
 😈 Nemesis: @sam (5)
+⚔️ Top rival: @sam (7–5)
 ```
 
 - **Favorite target:** who they've sniped the most, all time.
 - **Nemesis:** who has sniped *them* the most, all time.
+- **Top rival:** their biggest [rivalry](#rivalries), with the score from their side (their snipes first).
 
 Works on yourself too: just tag yourself. `/snipes` with no one tagged shows a list of the commands.
+
+## Rivalries
+
+Any two people who've sniped each other become rivals. A rivalry counts **both directions**, so it has a score, like a game: if Alex has sniped Sam 7 times and Sam has sniped Alex 5 times, it's **@alex 7–5 @sam**.
+
+- The person ahead is listed first.
+- Rivalries are ranked by total snipes between the two (12 in that example). On a tie, the closer score ranks higher.
+- A pair needs **at least 2** snipes between them to show up on the rivalry boards.
+- If only one side has ever landed a shot, it's marked _(one-sided)_.
+
+### `/snipes-rivals`
+
+The top 5 rivalries of all time, and the 3 hottest this month.
+
+```
+⚔️ Top Rivalries (all time)
+1. @alex 7–5 @sam · 12 snipes
+2. @jordan 6–4 @taylor · 10 snipes
+3. @casey 5–0 @riley · 5 snipes (one-sided)
+
+🔥 Hottest this month
+1. @jordan 3–2 @taylor · 5 snipes
+```
+
+### `/snipes-rivals @person`
+
+Everyone that person has traded snipes with, biggest first, from their side. Up to 8 people are listed.
+
+```
+⚔️ @sam's rivals (all time)
+• @alex — down 5–7
+• @jordan — up 3–1
+• @casey — tied 2–2
+```
+
+### `/snipes-rivals @person @person`
+
+A head-to-head between two people. The first person you tag is listed first.
+
+```
+⚔️ @alex vs @sam
+All time: @alex 7–5 @sam · @alex leads by 2
+This month: @alex 2–2 @sam
+This week: @alex 1–0 @sam
+🩸 First blood: @sam got @alex on Mar 3, 2025
+⏱️ Latest: @alex got @sam on Oct 5, 2026
+```
+
+The dates link to the posts. This works for any two people, even if they've only traded one snipe.
 
 ## FAQ
 

@@ -10,6 +10,7 @@ from datetime import datetime
 from slack_sdk.errors import SlackApiError
 
 from .config import Config
+from .rivals import head_to_head, person_rivals, rivals_board
 from .snipes import parse_snipe
 from .stats import last_report_due, month_start, player_card, report, week_window, weekly_report
 from .store import Store
@@ -162,3 +163,12 @@ class SnipeTracker:
 
     def player_card(self, uid: str) -> str:
         return player_card(uid, *(self.store.snipes(self.period_start(p)) for p in ("week", "month", "all")))
+
+    def rivals(self, uids: list[str]) -> str:
+        """No one tagged: the top rivalries. One person: their rivals. Two: head-to-head."""
+        week, month, all_time = (self.store.snipes(self.period_start(p)) for p in ("week", "month", "all"))
+        if not uids:
+            return rivals_board(month, all_time)
+        if len(uids) == 1:
+            return person_rivals(uids[0], all_time)
+        return head_to_head(uids[0], uids[1], week, month, all_time, self.cfg.tz, self.permalink)

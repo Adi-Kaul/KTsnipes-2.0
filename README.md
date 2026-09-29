@@ -24,13 +24,14 @@ The Sunday report looks like this:
 >
 > 🔥 **Best day:** @alex got 4 snipes on Wednesday
 > 🤩 **Most reacted:** [this shot] by @sam on @taylor (18 reactions)
-> ⚔️ **Rivalry of the week:** @alex sniped @taylor 3 times
+> ⚔️ **Rivalry of the week:** @alex **3–1** @taylor
 > 📅 **Busiest day:** Friday (8 snipes)
 
-It also adds four slash commands. Only you see the replies.
+It also adds five slash commands. Only you see the replies.
 - `/snipes-week` shows this week's leaderboard and highlights so far.
 - `/snipes-month` shows the same for this month.
 - `/snipes-alltime` shows the same for all time.
+- `/snipes-rivals` shows the biggest rivalries. Tag one person to see their rivals, or two for a head-to-head.
 - `/snipes @person` shows someone's record, favorite target, and nemesis.
 
 ## Quick start
@@ -65,6 +66,7 @@ You'll need to create the Slack app first. It takes a few minutes with the inclu
 - **Confirms every snipe.** The 🎯 reaction tells you it counted. No 🎯 means something's off (usually a missing tag).
 - **Keeps up with edits.** Add a tag later and it counts. Delete the post and it comes off the board.
 - **Weekly report, plus month and all-time boards.** Top snipers, most sniped, best single day, most reacted-to snipe, rivalry of the week, and busiest day.
+- **Rivalries.** Every pair who's traded snipes gets a head-to-head score (`@alex 7–5 @sam`), with first blood and the latest hit.
 - **Counts the old stuff.** On first start it reads the channel's entire history, so KTsnipes 1.0-era snipes are on the all-time board.
 - **Survives restarts.** The tally is stored in SQLite. If the bot was offline, it catches up on anything it missed, and posts a late report if it's back within 12 hours.
 - **No web server.** It runs in Socket Mode, so it works on Railway, a laptop, or a Raspberry Pi. A `Dockerfile` and `railway.toml` are included.

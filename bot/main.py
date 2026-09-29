@@ -85,6 +85,12 @@ def register(app: App, tracker: SnipeTracker) -> None:
         m = USER_RE.search(command.get("text") or "")
         run(respond, "/snipes", lambda: tracker.player_card(m.group(1)) if m else USAGE)
 
+    @app.command("/snipes-rivals")
+    def snipes_rivals(ack, command, respond):
+        ack()
+        uids = list(dict.fromkeys(USER_RE.findall(command.get("text") or "")))  # dedupe, keep order
+        run(respond, "/snipes-rivals", lambda: tracker.rivals(uids))
+
     # One command per period so each shows up in Slack's autocomplete.
     for period, name in PERIOD_COMMANDS.items():
         def handler(ack, respond, period=period, name=name):
@@ -95,7 +101,7 @@ def register(app: App, tracker: SnipeTracker) -> None:
 
 PERIOD_COMMANDS = {"week": "/snipes-week", "month": "/snipes-month", "all": "/snipes-alltime"}
 USAGE = ("Usage: `/snipes @person` (someone's record), `/snipes-week`, `/snipes-month`, or `/snipes-alltime` "
-         "(leaderboards and highlights)")
+         "(leaderboards and highlights), or `/snipes-rivals [@person] [@person]` (rivalries and head-to-heads)")
 
 
 def run(respond, name: str, build) -> None:
