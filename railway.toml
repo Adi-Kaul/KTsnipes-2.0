@@ -1,0 +1,8 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Exactly one copy, or every snipe gets counted/reacted to twice.
+numReplicas = 1
+restartPolicyType = "ALWAYS"

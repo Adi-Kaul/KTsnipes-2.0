@@ -1,0 +1,39 @@
+# Paste this at https://api.slack.com/apps -> Create New App -> From a manifest
+display_information:
+  name: KTsnipes 2.0
+  description: Tallies snipes in #ktsnipes and posts a weekly snipe report.
+  background_color: "#1d1d1d"
+features:
+  bot_user:
+    display_name: KTsnipes 2.0
+    always_online: true
+  slash_commands:
+    - command: /snipes
+      description: Snipe leaderboard, or someone's record
+      usage_hint: "[@person]"
+      should_escape: true
+    - command: /snipes-report
+      description: Preview this week's snipe report so far
+      should_escape: false
+oauth_config:
+  scopes:
+    bot:
+      - channels:history   # read posts in #ktsnipes
+      - groups:history     # ...if it's a private channel
+      - channels:read      # find the channel by name
+      - groups:read
+      - chat:write         # post the weekly report
+      - reactions:write    # react to snipes it counted
+      - users:read         # tell people apart from bots
+      - files:read         # see that a post has an image
+      - commands           # /snipes
+settings:
+  event_subscriptions:
+    bot_events:
+      - message.channels   # new, edited, and deleted posts
+      - message.groups
+  interactivity:
+    is_enabled: true
+  org_deploy_enabled: false
+  socket_mode_enabled: true
+  token_rotation_enabled: false
