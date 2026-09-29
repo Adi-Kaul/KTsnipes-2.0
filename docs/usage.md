@@ -84,7 +84,7 @@ What each part means:
 | **Top Snipers** | Most snipes made this week. Top 3 places. |
 | **Most Sniped** | Most times tagged this week. Top 3 places. |
 | **Best day** | The most snipes one person made in a single day (midnight to midnight). Only shown if it's at least 2. |
-| **Most efficient** | The best K/D: snipes made ÷ times sniped. Never sniped counts as sniped once, so 4–0 is a 4.00. Takes at least 3 snipes to qualify (5 for the monthly report, 10 for all time), so a lucky 1–0 can't win. Ties go to whoever made more snipes. |
+| **Most efficient** | The best K/D: snipes made ÷ times sniped. Never sniped counts as sniped once, so 4–0 is a 4.00. Takes at least 3 snipes to qualify (5 for the monthly report, 10 for all time), so a lucky 1–0 can't win, but anyone with a K/D above 3.00 always qualifies. Ties go to whoever made more snipes. |
 | **Most reacted** | The snipe post with the most total reactions (not counting the bot's 🎯). Links to the post. |
 | **Rivalry of the week** | The two people who sniped each other the most, counting both directions, with the score. Only shown if it's at least 2 total. See [Rivalries](#rivalries). |
 | **Busiest day** | The day of the week with the most snipes overall. Only shown if it's at least 2. |

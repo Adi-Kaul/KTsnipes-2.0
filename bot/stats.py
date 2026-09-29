@@ -58,10 +58,10 @@ def kd(made: int, got: int) -> float:
 
 
 def most_efficient(snipes: list[Snipe], min_snipes: int) -> tuple[str, int, int] | None:
-    """(user, snipes, times sniped) for the best K/D among people with at least min_snipes snipes.
-    Ties go to whoever has more snipes."""
+    """(user, snipes, times sniped) for the best K/D among people with at least min_snipes snipes
+    or a K/D above EFFICIENT_KD. Ties go to whoever has more snipes."""
     made, got = snipe_counts(snipes), sniped_counts(snipes)
-    qualified = [(u, n, got[u]) for u, n in made.items() if n >= min_snipes]
+    qualified = [(u, n, got[u]) for u, n in made.items() if n >= min_snipes or kd(n, got[u]) > EFFICIENT_KD]
     return min(qualified, key=lambda r: (-kd(r[1], r[2]), -r[1], r[0]), default=None)
 
 
@@ -157,6 +157,8 @@ PERIODS = {
 }
 # Snipes needed to qualify for "Most efficient", so a lucky 1–0 doesn't win.
 EFFICIENT_MIN = {"week": 3, "month": 5, "all": 10}
+# ...unless their K/D is above this, which qualifies them regardless.
+EFFICIENT_KD = 3
 EMPTY = {
     "week": "Zero snipes this week. Nobody's watching their back and nobody's taking the shot. :sleeping:",
     "month": "Zero snipes this month so far. :sleeping:",

@@ -101,6 +101,10 @@ def test_most_efficient_needs_enough_snipes_and_breaks_ties_on_volume():
     assert most_efficient(lucky + steady + back, 5) == ("S", 6, 1)
     assert most_efficient(lucky + steady + bigger + back, 5) == ("B", 12, 2)
     assert most_efficient(lucky, 5) is None
+    hot = [Snipe(str(i), "H", ["X"], 0) for i in range(30, 34)]    # 4–0: under 5 snipes, but K/D 4.00 > 3
+    assert most_efficient(lucky + steady + hot + back, 5) == ("S", 6, 1)
+    assert most_efficient(lucky + hot, 5) == ("H", 4, 0)
+    assert most_efficient(hot[:3], 5) is None                      # 3–0 is exactly 3.00, not above
     assert "Most efficient" not in report(lucky, "week", 0, 1e10, TZ)
 
 
