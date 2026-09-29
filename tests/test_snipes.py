@@ -290,3 +290,26 @@ def test_weekly_report_posts_once_and_skips_stale():
 
     now[0] = due + 7 * 86400 + 13 * 3600         # bot was down for next week's report
     assert not tr.maybe_report() and len(client.posted) == 1
+
+
+# ---- slash commands ----
+
+def test_period_commands_reach_the_right_report(monkeypatch):
+    """Goes through Bolt's real dispatch, which passes handler args by name."""
+    from slack_bolt import App, BoltRequest
+    from slack_bolt.authorization import AuthorizeResult
+    import bot.main as main
+
+    class Tracker:
+        def period_report(self, period):
+            return f"report:{period}"
+
+    got = []
+    monkeypatch.setattr(main, "run", lambda respond, name, build: got.append((name, build())))
+    auth = AuthorizeResult(enterprise_id=None, team_id="T1", bot_token="xoxb-test", bot_user_id="UB", bot_id="B1")
+    app = App(authorize=lambda **_: auth, signing_secret="x", request_verification_enabled=False)
+    main.register(app, Tracker())
+    for name in main.PERIOD_COMMANDS.values():
+        body = f"command={name}&text=&team_id=T1&user_id=U1&channel_id=C1&response_url=https://example.com"
+        assert app.dispatch(BoltRequest(body=body, mode="socket_mode")).status == 200
+    assert got == [(name, f"report:{p}") for p, name in main.PERIOD_COMMANDS.items()]

@@ -92,11 +92,15 @@ def register(app: App, tracker: SnipeTracker) -> None:
         run(respond, "/snipes-rivals", lambda: tracker.rivals(uids))
 
     # One command per period so each shows up in Slack's autocomplete.
-    for period, name in PERIOD_COMMANDS.items():
-        def handler(ack, respond, period=period, name=name):
+    # Bolt passes handler arguments by name (unknown ones get None), so bind period/name in a closure.
+    def period_handler(period: str, name: str):
+        def handler(ack, respond):
             ack()
             run(respond, name, lambda: tracker.period_report(period))
-        app.command(name)(handler)
+        return handler
+
+    for period, name in PERIOD_COMMANDS.items():
+        app.command(name)(period_handler(period, name))
 
 
 PERIOD_COMMANDS = {"week": "/snipes-week", "month": "/snipes-month", "all": "/snipes-alltime"}
