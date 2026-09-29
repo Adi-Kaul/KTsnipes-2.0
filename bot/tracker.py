@@ -11,7 +11,7 @@ from slack_sdk.errors import SlackApiError
 
 from .config import Config
 from .snipes import parse_snipe
-from .stats import last_report_due, leaderboard, player_card, week_window, weekly_report
+from .stats import last_report_due, month_start, player_card, report, week_window, weekly_report
 from .store import Store
 
 log = logging.getLogger(__name__)
@@ -124,11 +124,18 @@ class SnipeTracker:
         start, end = week_window(due)
         return weekly_report(self.store.snipes(start, end), start, end, self.cfg.tz, self.permalink)
 
-    def preview_report(self) -> str:
-        """This week's report as it stands right now."""
-        due = self.last_due()
-        start, now = due.timestamp(), self.clock()
-        return weekly_report(self.store.snipes(start, now), start, now + 1, self.cfg.tz, self.permalink)
+    def period_start(self, period: str) -> float:
+        """Where "this week" (since the last report), "this month", and "all time" begin."""
+        if period == "week":
+            return self.last_due().timestamp()
+        if period == "month":
+            return month_start(self.clock(), self.cfg.tz).timestamp()
+        return 0.0
+
+    def period_report(self, period: str) -> str:
+        """The report for this week, month, or all time, as it stands right now."""
+        start, now = self.period_start(period), self.clock()
+        return report(self.store.snipes(start, now + 1), period, start, now + 1, self.cfg.tz, self.permalink)
 
     def maybe_report(self) -> bool:
         """Posts the weekly report if one is due and hasn't gone out. Returns True if it posted."""
@@ -153,8 +160,5 @@ class SnipeTracker:
 
     # ---- slash command ----
 
-    def leaderboard(self) -> str:
-        return leaderboard(self.store.snipes(self.last_due().timestamp()), self.store.snipes())
-
     def player_card(self, uid: str) -> str:
-        return player_card(uid, self.store.snipes(self.last_due().timestamp()), self.store.snipes())
+        return player_card(uid, *(self.store.snipes(self.period_start(p)) for p in ("week", "month", "all")))

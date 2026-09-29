@@ -3,6 +3,8 @@
     python -m bot.main                  # run forever (Socket Mode)
     python -m bot.main --backfill       # count every snipe in the channel's history, then exit
     python -m bot.main --preview        # print this week's report so far, then exit
+    python -m bot.main --preview month  # ...or this month's, or all
+
 """
 
 from __future__ import annotations
@@ -80,27 +82,35 @@ def register(app: App, tracker: SnipeTracker) -> None:
     @app.command("/snipes")
     def snipes(ack, command, respond):
         ack()
-        try:
-            m = USER_RE.search(command.get("text") or "")
-            respond(tracker.player_card(m.group(1)) if m else tracker.leaderboard())
-        except Exception as e:
-            log.exception("/snipes failed")
-            respond(f"Something went wrong: {e}")
+        m = USER_RE.search(command.get("text") or "")
+        run(respond, "/snipes", lambda: tracker.player_card(m.group(1)) if m else USAGE)
 
-    @app.command("/snipes-report")
-    def snipes_report(ack, respond):
-        ack()
-        try:
-            respond(tracker.preview_report())
-        except Exception as e:
-            log.exception("/snipes-report failed")
-            respond(f"Something went wrong: {e}")
+    # One command per period so each shows up in Slack's autocomplete.
+    for period, name in PERIOD_COMMANDS.items():
+        def handler(ack, respond, period=period, name=name):
+            ack()
+            run(respond, name, lambda: tracker.period_report(period))
+        app.command(name)(handler)
+
+
+PERIOD_COMMANDS = {"week": "/snipes-week", "month": "/snipes-month", "all": "/snipes-alltime"}
+USAGE = ("Usage: `/snipes @person` (someone's record), `/snipes-week`, `/snipes-month`, or `/snipes-alltime` "
+         "(leaderboards and highlights)")
+
+
+def run(respond, name: str, build) -> None:
+    try:
+        respond(build())
+    except Exception as e:
+        log.exception("%s failed", name)
+        respond(f"Something went wrong: {e}")
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--backfill", action="store_true", help="count every snipe in the channel's history and exit")
-    parser.add_argument("--preview", action="store_true", help="print this week's report so far and exit")
+    parser.add_argument("--preview", nargs="?", const="week", choices=["week", "month", "all"],
+                        help="print this week's (or month's, or all-time) report so far and exit")
     args = parser.parse_args(argv)
 
     load_dotenv()
@@ -126,7 +136,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Counted {n} snipe posts from the channel's full history.")
         return 0
     if args.preview:
-        print(tracker.preview_report())
+        print(tracker.period_report(args.preview))
         return 0
 
     if not cfg.app_token:

@@ -5,8 +5,8 @@ from slack_sdk.errors import SlackApiError
 
 from bot.config import Config
 from bot.snipes import Snipe, parse_snipe
-from bot.stats import (best_day, last_report_due, player_card, ranked, sniped_counts, snipe_counts,
-                       top_rivalry, week_window, weekly_report)
+from bot.stats import (best_day, last_report_due, month_start, player_card, ranked, report, sniped_counts,
+                       snipe_counts, top_rivalry, week_window, weekly_report)
 from bot.store import Store
 from bot.tracker import SnipeTracker
 
@@ -95,13 +95,37 @@ def test_empty_week():
 
 
 def test_player_card():
-    card = player_card("B", WEEK[2:], WEEK)
+    card = player_card("B", WEEK[2:], WEEK[1:], WEEK)
     assert "*This week:* 1 snipe · sniped 1 time" in card
+    assert "*This month:* 1 snipe · sniped 2 times" in card
     assert "*All time:* 1 snipe · sniped 3 times" in card
     assert "Nemesis: <@A> (2)" in card
 
 
+def test_month_and_all_time_reports():
+    month = report(WEEK, "month", float(ts(2026, 9, 1, 0)), 1e10, TZ)
+    assert "*KTsnipes Monthly Report* · September 2026" in month and "*5 snipes* this month" in month
+    assert "on Mon Sep 28" in month and "Rivalry of the month" in month
+
+    alltime = report(WEEK, "all", 0, 1e10, TZ)
+    assert "*KTsnipes All-Time Report* · since Sep 28, 2026" in alltime and "all time" in alltime
+    assert "*Biggest rivalry:*" in alltime and "Busiest day:* Sep 28, 2026" in alltime
+
+    assert "No snipes on record yet" in report([], "all", 0, 1e10, TZ)
+
+
+def test_month_boards_show_five_places():
+    many = [Snipe(str(i), f"U{i}", ["X"] * 1, 0) for i in range(1, 8)]
+    assert report(many, "week", 0, 1e10, TZ).count("<@U") == 5    # 7-way tie, capped at 5 rows
+    lines = report(many, "month", 0, 1e10, TZ).split("*Most Sniped*")[0]
+    assert lines.count("<@U") == 5
+
+
 # ---- schedule ----
+
+def test_month_start():
+    assert month_start(float(ts(2026, 10, 17, 15)), TZ) == datetime(2026, 10, 1, tzinfo=TZ)
+
 
 def test_last_report_due_is_most_recent_sunday_8pm():
     sun_8pm = datetime(2026, 10, 4, 20, 0, tzinfo=TZ)
@@ -179,6 +203,19 @@ def test_sweep_catches_missed_posts_and_deletions():
     client.messages = [m for m in client.messages if m["ts"] != b]  # deleted while bot was offline
     assert tr.sweep() == 1
     assert [s.ts for s in tr.store.snipes()] == [a]
+
+
+def test_period_reports_from_tracker():
+    now = [float(ts(2026, 10, 7, 9))]                        # Wednesday Oct 7
+    client = FakeClient([post(ts(2026, 10, 5)),                # this week
+                         post(ts(2026, 10, 2), text="<@U3>"),  # this month, last week
+                         post(ts(2026, 9, 20), text="<@U4>")]) # last month
+    tr = make(client, now)
+    tr.sweep(days=0)
+    assert "*1 snipe* this week" in tr.period_report("week")
+    assert "*2 snipes* this month" in tr.period_report("month")
+    assert "*3 snipes* all time" in tr.period_report("all")
+    assert "*This month:* 2 snipes" in tr.player_card("U1")
 
 
 def test_backfill_doesnt_react():

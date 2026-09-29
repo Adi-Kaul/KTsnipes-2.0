@@ -9,11 +9,17 @@ features:
     always_online: true
   slash_commands:
     - command: /snipes
-      description: Snipe leaderboard, or someone's record
-      usage_hint: "[@person]"
+      description: Someone's snipe record
+      usage_hint: "@person"
       should_escape: true
-    - command: /snipes-report
-      description: Preview this week's snipe report so far
+    - command: /snipes-week
+      description: This week's snipe leaderboard and highlights so far
+      should_escape: false
+    - command: /snipes-month
+      description: This month's snipe leaderboard and highlights
+      should_escape: false
+    - command: /snipes-alltime
+      description: All-time snipe leaderboard and highlights
       should_escape: false
 oauth_config:
   scopes:

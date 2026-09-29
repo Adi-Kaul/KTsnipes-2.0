@@ -102,28 +102,52 @@ def board(counter: Counter, limit: int = 3, cap: int = 5) -> str:
     return "\n".join(f"{MEDALS.get(rank, f'{rank}.')} {at(u)} — {n}" for rank, u, n in ranked(counter, limit, cap))
 
 
-def weekly_report(snipes: list[Snipe], start: float, end: float, tz: ZoneInfo, permalink=None) -> str:
-    """The Sunday report. permalink(ts) -> URL, used to link the most-reacted snipe."""
+# Per period: title, how to say the period in a sentence, how to write a day, top N places on each board.
+PERIODS = {
+    "week": ("Weekly Report", "this week", "%A", 3),
+    "month": ("Monthly Report", "this month", "%a %b %-d", 5),
+    "all": ("All-Time Report", "all time", "%b %-d, %Y", 5),
+}
+EMPTY = {
+    "week": "Zero snipes this week. Nobody's watching their back and nobody's taking the shot. :sleeping:",
+    "month": "Zero snipes this month so far. :sleeping:",
+    "all": "No snipes on record yet. Somebody take the first shot. :camera_with_flash:",
+}
+
+
+def month_start(now: float, tz: ZoneInfo) -> datetime:
+    return datetime.fromtimestamp(now, tz).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+
+def report(snipes: list[Snipe], period: str, start: float, end: float, tz: ZoneInfo, permalink=None) -> str:
+    """A report for snipes posted in [start, end). period is "week", "month", or "all".
+    permalink(ts) -> URL, used to link the most-reacted snipe."""
+    title, phrase, day_fmt, places = PERIODS[period]
     first = datetime.fromtimestamp(start, tz)
     last = datetime.fromtimestamp(end, tz) - timedelta(seconds=1)
-    span = f"{first:%b %-d} – {last:%b %-d}"
-    head = f":dart: *KTsnipes Weekly Report* · {span}"
+    if period == "week":
+        span = f" · {first:%b %-d} – {last:%b %-d}"
+    elif period == "month":
+        span = f" · {first:%B %Y}"
+    else:
+        span = f" · since {datetime.fromtimestamp(float(snipes[0].ts), tz):%b %-d, %Y}" if snipes else ""
+    head = f":dart: *KTsnipes {title}*{span}"
     if not snipes:
-        return f"{head}\n\nZero snipes this week. Nobody's watching their back and nobody's taking the shot. :sleeping:"
+        return f"{head}\n\n{EMPTY[period]}"
 
     made, got = snipe_counts(snipes), sniped_counts(snipes)
     total = sum(made.values())
     parts = [
         head,
-        f"*{plural(total, 'snipe')}* this week · {plural(len(made), 'sniper')} · {plural(len(got), 'victim')}",
-        f":gun: *Top Snipers*\n{board(made)}",
-        f":skull: *Most Sniped*\n{board(got)}",
+        f"*{plural(total, 'snipe')}* {phrase} · {plural(len(made), 'sniper')} · {plural(len(got), 'victim')}",
+        f":gun: *Top Snipers*\n{board(made, places, 5)}",
+        f":skull: *Most Sniped*\n{board(got, places, 5)}",
     ]
 
     highlights = []
     if (bd := best_day(snipes, tz)) and bd[2] >= 2:
         user, day, n = bd
-        highlights.append(f":fire: *Best day:* {at(user)} got {plural(n, 'snipe')} on {day:%A}")
+        highlights.append(f":fire: *Best day:* {at(user)} got {plural(n, 'snipe')} on {day:{day_fmt}}")
     if mr := most_reacted(snipes):
         victims = " ".join(at(t) for t in mr.targets)
         shot = f"<{permalink(mr.ts)}|this shot>" if permalink else "this shot"
@@ -131,32 +155,28 @@ def weekly_report(snipes: list[Snipe], start: float, end: float, tz: ZoneInfo, p
                           f"({plural(mr.reactions, 'reaction')})")
     if rv := top_rivalry(snipes):
         sniper, target, n = rv
-        highlights.append(f":crossed_swords: *Rivalry of the week:* {at(sniper)} sniped {at(target)} {n} times")
+        label = "Biggest rivalry" if period == "all" else f"Rivalry of the {period}"
+        highlights.append(f":crossed_swords: *{label}:* {at(sniper)} sniped {at(target)} {n} times")
     if (busy := busiest_day(snipes, tz)) and busy[1] >= 2:
-        highlights.append(f":calendar: *Busiest day:* {busy[0]:%A} ({plural(busy[1], 'snipe')})")
+        highlights.append(f":calendar: *Busiest day:* {busy[0]:{day_fmt}} ({plural(busy[1], 'snipe')})")
     if highlights:
         parts.append("\n".join(highlights))
     return "\n\n".join(parts)
 
 
-def leaderboard(week: list[Snipe], all_time: list[Snipe]) -> str:
-    """What /snipes shows: this week so far and all time."""
-    def section(title: str, snipes: list[Snipe]) -> str:
-        if not snipes:
-            return f"*{title}*\nNo snipes yet."
-        return (f"*{title}* ({plural(sum(snipe_counts(snipes).values()), 'snipe')})\n"
-                f"_Snipers_\n{board(snipe_counts(snipes), 5, 5)}\n"
-                f"_Sniped_\n{board(sniped_counts(snipes), 5, 5)}")
-    return f"{section('This week so far', week)}\n\n{section('All time', all_time)}"
+def weekly_report(snipes: list[Snipe], start: float, end: float, tz: ZoneInfo, permalink=None) -> str:
+    """The Sunday report."""
+    return report(snipes, "week", start, end, tz, permalink)
 
 
-def player_card(uid: str, week: list[Snipe], all_time: list[Snipe]) -> str:
+def player_card(uid: str, week: list[Snipe], month: list[Snipe], all_time: list[Snipe]) -> str:
     """What /snipes @someone shows."""
     def line(label: str, snipes: list[Snipe]) -> str:
         return (f"*{label}:* {plural(snipe_counts(snipes)[uid], 'snipe')} · "
                 f"sniped {plural(sniped_counts(snipes)[uid], 'time')}")
 
-    lines = [f"{at(uid)}'s snipe record", line("This week", week), line("All time", all_time)]
+    lines = [f"{at(uid)}'s snipe record", line("This week", week), line("This month", month),
+             line("All time", all_time)]
     hits = Counter(t for s in all_time if s.sniper == uid for t in s.targets)
     by = Counter(s.sniper for s in all_time for t in s.targets if t == uid)
     if hits:
