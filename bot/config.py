@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import time as dtime
 from zoneinfo import ZoneInfo
 
+MENTIONS = {"channel": "<!channel>", "here": "<!here>", "none": ""}
 DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 
@@ -23,6 +24,10 @@ class Config:
     timezone: str = "America/Detroit"
     report_day: int = 6  # 0 = Monday ... 6 = Sunday
     report_time: dtime = dtime(20, 0)
+    # Also post a monthly report on the last day of each month at report_time.
+    monthly_report: bool = True
+    # Prefix for posted reports: "<!channel>", "<!here>", or "" for no mention.
+    report_mention: str = "<!channel>"
 
     # Emoji the bot reacts with when it counts a snipe. Empty = don't react.
     confirm_emoji: str = "dart"
@@ -52,6 +57,9 @@ def load_config() -> Config:
         report_time = dtime(int(hh), int(mm))
     except ValueError:
         raise ValueError("REPORT_TIME must look like 20:00 (24-hour)") from None
+    mention = _env("REPORT_MENTION", "channel").lower().lstrip("@") or "none"
+    if mention not in MENTIONS:
+        raise ValueError(f"REPORT_MENTION must be channel, here, or none, got {mention!r}")
 
     cfg = Config(
         bot_token=_env("SLACK_BOT_TOKEN"),
@@ -61,6 +69,8 @@ def load_config() -> Config:
         timezone=_env("TIMEZONE", "America/Detroit"),
         report_day=DAYS.index(day),
         report_time=report_time,
+        monthly_report=_env("MONTHLY_REPORT", "1").lower() not in ("0", "false", "no"),
+        report_mention=MENTIONS[mention],
         confirm_emoji=_env("CONFIRM_EMOJI", "dart").strip(":"),
         sweep_minutes=float(_env("SWEEP_MINUTES", "10")),
         sweep_days=float(_env("SWEEP_DAYS", "8")),

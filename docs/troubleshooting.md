@@ -46,9 +46,9 @@ If none of those apply, look in the logs for a `Snipe …: U… sniped U…` lin
 **The bot reacted, but the snipe isn't on `/snipes-week`**
 The post was edited to remove the tag or photo, or deleted, since then. The 🎯 stays but the snipe doesn't count.
 
-**The weekly report didn't post**
-1. Is it past `REPORT_TIME` on `REPORT_DAY` in `TIMEZONE`? The default is Sunday 8pm **Detroit** time. Check the host's logs for `Posted the weekly report`.
-2. Was the bot offline at report time? If it came back more than 12 hours late, it skips that week. The log says `Missed the report due …`.
+**The weekly or monthly report didn't post**
+1. Is it past `REPORT_TIME` on `REPORT_DAY` in `TIMEZONE`? The default is Sunday 8pm **Detroit** time. The monthly one goes out at the same time on the last day of the month, unless `MONTHLY_REPORT` is off. Check the host's logs for `Posted the weekly report` or `Posted the monthly report`.
+2. Was the bot offline at report time? If it came back more than 12 hours late, it skips that week. The log says `Missed the weekly report due …` (or `monthly`).
 3. Is `DRY_RUN` on? The report goes to the logs instead.
 4. Is the bot a member of `REPORT_CHANNEL`, if you set one?
 

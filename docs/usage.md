@@ -7,7 +7,7 @@ This page is for everyone in #ktsnipes: what counts, how the tally works, and th
 1. See a brother out in the wild. Take the photo.
 2. Post it in **#ktsnipes** and **@tag** them.
 3. The bot reacts with 🎯. That means it counted.
-4. Every **Sunday at 8pm**, the bot posts the weekly snipe report.
+4. Every **Sunday at 8pm**, the bot posts the weekly snipe report, and on the **last day of each month** at 8pm, the monthly one.
 
 ## Snipe vs. sniped
 
@@ -89,9 +89,13 @@ What each part means:
 
 **Ties** share a place. If two people tie for second, they both get 🥈 and the next person is fourth. The boards show at most 5 people.
 
-The report **@mentions** people, so everyone on it gets a ping.
+The report starts with an **@channel**, so everyone in #ktsnipes gets a ping, and it **@mentions** everyone on it.
 
 If nobody sniped anyone all week, the report says so. Loudly.
+
+## The monthly report
+
+On the last day of each month at 8pm, the bot also posts a monthly report, in the same format as `/snipes-month`: the top 5 snipers and most sniped, plus the month's highlights. It covers everything since last month's report (8pm on the last day of the previous month), so a snipe posted at 11pm on the 31st shows up in next month's report.
 
 ## Commands
 
@@ -224,8 +228,8 @@ No. A snipe always belongs to the week it was originally *posted*, even if you e
 **What if I post at 7:59pm Sunday?**
 It counts toward the week that's ending, and it'll be in that night's report. At 8:00pm it counts toward next week.
 
-**What if the bot was down on Sunday night?**
-If it comes back within 12 hours, it posts the report late. After that, it skips that week's report. All the snipes are still counted and show up in `/snipes`.
+**What if the bot was down on Sunday night (or the last night of the month)?**
+If it comes back within 12 hours, it posts the report late. After that, it skips that report. All the snipes are still counted and show up in `/snipes`.
 
 **Do old snipes from before the bot count?**
 Yes. The first time the bot starts, it reads the channel's entire history and counts every snipe ever posted. They show up in the all-time board.

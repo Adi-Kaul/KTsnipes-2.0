@@ -1,4 +1,4 @@
-"""Keeps the tally in sync with #ktsnipes and posts the weekly report."""
+"""Keeps the tally in sync with #ktsnipes and posts the weekly and monthly reports."""
 
 from __future__ import annotations
 
@@ -12,7 +12,8 @@ from slack_sdk.errors import SlackApiError
 from .config import Config
 from .rivals import head_to_head, person_rivals, rivals_board
 from .snipes import parse_snipe
-from .stats import last_report_due, month_start, player_card, report, week_window, weekly_report
+from .stats import (last_month_end_due, last_report_due, month_start, month_window, player_card, report,
+                    week_window, weekly_report)
 from .store import Store
 
 log = logging.getLogger(__name__)
@@ -127,6 +128,10 @@ class SnipeTracker:
         start, end = week_window(due)
         return weekly_report(self.store.snipes(start, end), start, end, self.cfg.tz, self.permalink)
 
+    def month_report_for(self, due: datetime) -> str:
+        start, end = month_window(due, self.cfg.report_time, self.cfg.tz)
+        return report(self.store.snipes(start, end), "month", start, end, self.cfg.tz, self.permalink)
+
     def period_start(self, period: str) -> float:
         """Where "this week" (since the last report), "this month", and "all time" begin."""
         if period == "week":
@@ -141,25 +146,35 @@ class SnipeTracker:
         return report(self.store.snipes(start, now + 1), period, start, now + 1, self.cfg.tz, self.permalink)
 
     def maybe_report(self) -> bool:
-        """Posts the weekly report if one is due and hasn't gone out. Returns True if it posted."""
+        """Posts the weekly report, and the monthly one on the last day of the month, if either is due
+        and hasn't gone out. Returns True if it posted anything."""
         with self._report_lock:
             due = self.last_due()
-            key = due.date().isoformat()
-            if self.store.report_sent(key):
-                return False
-            if self.clock() - due.timestamp() > REPORT_GRACE_HOURS * 3600:
-                self.store.mark_report_sent(key, self.clock())  # too late; skip it rather than post days later
-                log.warning("Missed the report due %s (bot was offline); skipping it", key)
-                return False
-            self.sweep()  # fresh reaction counts and edits right before posting
-            text = self.report_for(due)
-            if self.cfg.dry_run:
-                log.info("[dry run] would post the weekly report to %s:\n%s", self.report_channel, text)
-            else:
-                self.client.chat_postMessage(channel=self.report_channel, text=text, unfurl_links=False)
-            self.store.mark_report_sent(key, self.clock())
-            log.info("Posted the weekly report for %s", key)
-            return True
+            posted = self._post_once("weekly", due.date().isoformat(), due, lambda: self.report_for(due))
+            if self.cfg.monthly_report:
+                mdue = last_month_end_due(self.clock(), self.cfg.report_time, self.cfg.tz)
+                posted |= self._post_once("monthly", f"month:{mdue:%Y-%m}", mdue,
+                                          lambda: self.month_report_for(mdue))
+            return posted
+
+    def _post_once(self, kind: str, key: str, due: datetime, build) -> bool:
+        if self.store.report_sent(key):
+            return False
+        if self.clock() - due.timestamp() > REPORT_GRACE_HOURS * 3600:
+            self.store.mark_report_sent(key, self.clock())  # too late; skip it rather than post days later
+            log.warning("Missed the %s report due %s (bot was offline); skipping it", kind, due.date())
+            return False
+        self.sweep()  # fresh reaction counts and edits right before posting
+        text = build()
+        if self.cfg.report_mention:
+            text = f"{self.cfg.report_mention} {text}"
+        if self.cfg.dry_run:
+            log.info("[dry run] would post the %s report to %s:\n%s", kind, self.report_channel, text)
+        else:
+            self.client.chat_postMessage(channel=self.report_channel, text=text, unfurl_links=False)
+        self.store.mark_report_sent(key, self.clock())
+        log.info("Posted the %s report for %s", kind, due.date())
+        return True
 
     # ---- slash command ----
 

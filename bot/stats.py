@@ -1,9 +1,9 @@
-"""Turns a list of snipes into leaderboards and the weekly report. Pure functions, no Slack calls."""
+"""Turns a list of snipes into leaderboards and the weekly and monthly reports. Pure functions, no Slack calls."""
 
 from __future__ import annotations
 
 from collections import Counter
-from datetime import datetime, timedelta
+from datetime import datetime, time as dtime, timedelta
 from zoneinfo import ZoneInfo
 
 from .snipes import Snipe
@@ -16,6 +16,20 @@ def last_report_due(now: float, day: int, at, tz: ZoneInfo) -> datetime:
     local = datetime.fromtimestamp(now, tz)
     due = datetime.combine(local.date(), at, tz) - timedelta(days=(local.weekday() - day) % 7)
     return due if due <= local else due - timedelta(days=7)
+
+
+def last_month_end_due(now: float, at, tz: ZoneInfo) -> datetime:
+    """The most recent monthly report time at or before now (e.g. Sep 30 at 8pm)."""
+    local = datetime.fromtimestamp(now, tz)
+    next_first = (local.date().replace(day=28) + timedelta(days=4)).replace(day=1)
+    due = datetime.combine(next_first - timedelta(days=1), at, tz)
+    return due if due <= local else datetime.combine(local.date().replace(day=1) - timedelta(days=1), at, tz)
+
+
+def month_window(due: datetime, at, tz: ZoneInfo) -> tuple[float, float]:
+    """The month a report covers: since the previous month's report, so no snipe falls between two."""
+    first = datetime.combine(due.date().replace(day=1), dtime(0), tz)
+    return last_month_end_due(first.timestamp() - 1, at, tz).timestamp(), due.timestamp()
 
 
 def week_window(due: datetime) -> tuple[float, float]:
@@ -144,7 +158,8 @@ def report(snipes: list[Snipe], period: str, start: float, end: float, tz: ZoneI
     if period == "week":
         span = f" · {first:%b %-d} – {last:%b %-d}"
     elif period == "month":
-        span = f" · {first:%B %Y}"
+        # A posted monthly report's window starts the evening before the 1st, so name the month a day in.
+        span = f" · {first + timedelta(days=1):%B %Y}"
     else:
         span = f" · since {datetime.fromtimestamp(float(snipes[0].ts), tz):%b %-d, %Y}" if snipes else ""
     head = f":dart: *KTsnipes {title}*{span}"

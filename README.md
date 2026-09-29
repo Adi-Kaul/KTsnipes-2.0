@@ -2,7 +2,7 @@
 
 A Slack bot that keeps the tally for **#ktsnipes**.
 
-Post a photo in #ktsnipes and **@tag** who's in it. That's a snipe. The bot reacts with 🎯 so you know it counted, keeps a running tally, and every **Sunday at 8pm** posts the week's snipe report.
+Post a photo in #ktsnipes and **@tag** who's in it. That's a snipe. The bot reacts with 🎯 so you know it counted, keeps a running tally, every **Sunday at 8pm** posts the week's snipe report, and on the **last day of each month** posts the month's.
 
 **Snipe vs. sniped** are two separate tallies:
 
@@ -65,7 +65,7 @@ You'll need to create the Slack app first. It takes a few minutes with the inclu
 - **Counts on its own.** No commands to log a snipe. Post the photo, tag the person, done.
 - **Confirms every snipe.** The 🎯 reaction tells you it counted. No 🎯 means something's off (usually a missing tag).
 - **Keeps up with edits.** Add a tag later and it counts. Delete the post and it comes off the board.
-- **Weekly report, plus month and all-time boards.** Top snipers, most sniped, best single day, most reacted-to snipe, rivalry of the week, and busiest day.
+- **Weekly and monthly reports, plus an all-time board.** Top snipers, most sniped, best single day, most reacted-to snipe, rivalry of the week, and busiest day.
 - **Rivalries.** Every pair who's traded snipes gets a head-to-head score (`@alex 7–5 @sam`), with first blood and the latest hit.
 - **Counts the old stuff.** On first start it reads the channel's entire history, so KTsnipes 1.0-era snipes are on the all-time board.
 - **Survives restarts.** The tally is stored in SQLite. If the bot was offline, it catches up on anything it missed, and posts a late report if it's back within 12 hours.

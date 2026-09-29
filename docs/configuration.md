@@ -18,19 +18,23 @@ Settings are checked at startup. A bad value like `REPORT_DAY=sundy` or `REPORT_
 | Variable | Default | Description |
 |---|---|---|
 | `SNIPES_CHANNEL` | `ktsnipes` | The channel to watch. Use its name (`ktsnipes` or `#ktsnipes`) or its ID (`C0123ABCD`). |
-| `REPORT_CHANNEL` | *(same as `SNIPES_CHANNEL`)* | Where the weekly report goes. Invite the bot there too. |
+| `REPORT_CHANNEL` | *(same as `SNIPES_CHANNEL`)* | Where the weekly and monthly reports go. Invite the bot there too. |
 
 ## Report schedule
 
 | Variable | Default | Description |
 |---|---|---|
 | `REPORT_DAY` | `sunday` | Day of the week the report goes out. Full day name, any capitalization. |
-| `REPORT_TIME` | `20:00` | Time the report goes out, 24-hour `HH:MM`. |
+| `REPORT_TIME` | `20:00` | Time the weekly and monthly reports go out, 24-hour `HH:MM`. |
+| `MONTHLY_REPORT` | `true` | Also post a monthly report on the last day of each month at `REPORT_TIME`. `0`/`false` to turn it off. |
+| `REPORT_MENTION` | `channel` | Who the posted reports ping: `channel` (@channel), `here` (@here), or `none`. The `/snipes-*` commands never ping. |
 | `TIMEZONE` | `America/Detroit` | The timezone for `REPORT_TIME`, and for deciding which day a snipe happened on ("Best day", "Busiest day"). Any [tz database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones), like `America/New_York` or `America/Los_Angeles`. |
 
 The report covers the 7 days leading up to it. With the defaults, that's Sunday 8:00pm to the next Sunday 7:59pm. Daylight saving changes are handled; the report always goes out at 8pm local time.
 
-The bot checks whether the report is due once a minute, so it posts within a minute of `REPORT_TIME`. If it was offline at that time, it posts the report late as long as it's back within 12 hours, and skips that week otherwise.
+The monthly report goes out on the last day of each month (Sep 30, Feb 28, and so on) and covers everything since the previous month's report. With the defaults, that's 8:00pm on the last day of one month to 7:59pm on the last day of the next, so a snipe posted late on the 31st lands in the next month's report instead of falling between two. If the last day of the month is also `REPORT_DAY`, both reports go out.
+
+The bot checks whether a report is due once a minute, so it posts within a minute of `REPORT_TIME`. If it was offline at that time, it posts the report late as long as it's back within 12 hours, and skips it otherwise.
 
 ## Tracking
 
@@ -45,7 +49,7 @@ The bot checks whether the report is due once a minute, so it posts within a min
 | Variable | Default | Description |
 |---|---|---|
 | `DB_PATH` | `snipes.db` locally, `/data/snipes.db` in Docker | The SQLite file with the tally. On a host, put it on a persistent volume (see [deployment.md](deployment.md)). |
-| `DRY_RUN` | `false` | `1`/`true` to log the weekly report instead of posting it, and skip the 🎯 reactions. Snipes are still counted. |
+| `DRY_RUN` | `false` | `1`/`true` to log the weekly and monthly reports instead of posting them, and skip the 🎯 reactions. Snipes are still counted. |
 
 ## Full example
 
@@ -59,6 +63,8 @@ REPORT_CHANNEL=
 TIMEZONE=America/Detroit
 REPORT_DAY=sunday
 REPORT_TIME=20:00
+MONTHLY_REPORT=true
+REPORT_MENTION=channel
 CONFIRM_EMOJI=dart
 SWEEP_MINUTES=10
 SWEEP_DAYS=8

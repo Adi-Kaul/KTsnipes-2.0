@@ -3,9 +3,9 @@ from zoneinfo import ZoneInfo
 
 from slack_sdk.errors import SlackApiError
 
-from bot.config import Config
+from bot.config import Config, load_config
 from bot.snipes import Snipe, parse_snipe
-from bot.stats import (best_day, last_report_due, month_start, player_card, ranked, report, sniped_counts,
+from bot.stats import (best_day, last_month_end_due, last_report_due, month_start, month_window, player_card, ranked, report, sniped_counts,
                        rivalries, snipe_counts, week_window, weekly_report)
 from bot.rivals import head_to_head, person_rivals, rivals_board
 from bot.store import Store
@@ -190,6 +190,20 @@ def test_week_window_is_seven_days_across_dst():
     assert datetime.fromtimestamp(start, TZ) == datetime(2026, 11, 1, 20, tzinfo=TZ)
 
 
+
+def test_monthly_report_is_due_on_the_last_evening_of_the_month():
+    at = dtime(20, 0)
+    assert last_month_end_due(float(ts(2026, 9, 30, 20, 1)), at, TZ) == datetime(2026, 9, 30, 20, tzinfo=TZ)
+    assert last_month_end_due(float(ts(2026, 9, 30, 19)), at, TZ) == datetime(2026, 8, 31, 20, tzinfo=TZ)
+    assert last_month_end_due(float(ts(2027, 3, 1)), at, TZ) == datetime(2027, 2, 28, 20, tzinfo=TZ)
+    assert last_month_end_due(float(ts(2027, 1, 15)), at, TZ) == datetime(2026, 12, 31, 20, tzinfo=TZ)
+
+
+def test_month_window_picks_up_where_last_month_left_off():
+    start, end = month_window(datetime(2026, 9, 30, 20, tzinfo=TZ), dtime(20, 0), TZ)
+    assert datetime.fromtimestamp(start, TZ) == datetime(2026, 8, 31, 20, tzinfo=TZ)
+    assert datetime.fromtimestamp(end, TZ) == datetime(2026, 9, 30, 20, tzinfo=TZ)
+
 # ---- tracker against a fake Slack ----
 
 class FakeClient:
@@ -313,3 +327,35 @@ def test_period_commands_reach_the_right_report(monkeypatch):
         body = f"command={name}&text=&team_id=T1&user_id=U1&channel_id=C1&response_url=https://example.com"
         assert app.dispatch(BoltRequest(body=body, mode="socket_mode")).status == 200
     assert got == [(name, f"report:{p}") for p, name in main.PERIOD_COMMANDS.items()]
+
+
+
+def test_monthly_report_posts_once_with_a_channel_mention():
+    due = datetime(2026, 9, 30, 20, tzinfo=TZ)  # a Wednesday, so no weekly report is due
+    client = FakeClient([post(ts(2026, 8, 31, 21)),                 # after August's report: counts for September
+                         post(ts(2026, 9, 15), text="<@U3>"),
+                         post(ts(2026, 9, 30, 21), text="<@U9>")])  # after the report: October's
+    now = [due.timestamp() - 60]
+    tr = make(client, now)
+    tr.sweep(days=0)
+    assert not tr.maybe_report()
+    now[0] = due.timestamp() + 30
+    assert tr.maybe_report() and not tr.maybe_report()
+    assert len(client.posted) == 1
+    text = client.posted[0][1]
+    assert text.startswith("<!channel> :dart: *KTsnipes Monthly Report* · September 2026")
+    assert "*2 snipes* this month" in text and "<@U3>" in text and "<@U9>" not in text
+
+
+def test_report_mention_and_monthly_can_be_turned_off(monkeypatch):
+    monkeypatch.setenv("REPORT_MENTION", "none")
+    monkeypatch.setenv("MONTHLY_REPORT", "0")
+    cfg = load_config()
+    assert cfg.report_mention == "" and not cfg.monthly_report
+    monkeypatch.setenv("REPORT_MENTION", "@here")
+    assert load_config().report_mention == "<!here>"
+
+    due = datetime(2026, 9, 30, 20, tzinfo=TZ)
+    client = FakeClient([post(ts(2026, 9, 15))])
+    tr = SnipeTracker(client, cfg, Store(":memory:"), "CSNIPE", "CSNIPE", "UB", clock=lambda: due.timestamp() + 30)
+    assert not tr.maybe_report() and client.posted == []

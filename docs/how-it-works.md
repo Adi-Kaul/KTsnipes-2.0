@@ -31,7 +31,7 @@ The bot keeps its tally in sync with the channel in two ways:
 
 The tally is keyed by each message's timestamp (`ts`), so saving the same message twice never double-counts it.
 
-Once a minute, the loop also checks whether a weekly report is due. If one is due and hasn't been posted yet, the bot runs a sweep (for fresh reaction counts), builds the report from the database, posts it, and records it in the `reports` table so it's never posted twice.
+Once a minute, the loop also checks whether a weekly or monthly report is due. If one is due and hasn't been posted yet, the bot runs a sweep (for fresh reaction counts), builds the report from the database, posts it, and records it in the `reports` table so it's never posted twice.
 
 On startup, if the database has no snipes at all, the bot sweeps the channel's **entire** history without reacting to anything. That's the backfill.
 
@@ -68,7 +68,7 @@ Rivalries aren't stored; they're computed on the fly from the `snipes` table, li
 | [`bot/store.py`](../bot/store.py) | SQLite storage: `snipes` (one row per post), `targets` (who was tagged in each), `reports` (which weeks were posted) |
 | [`bot/stats.py`](../bot/stats.py) | Pure functions: the report schedule, tallies, rankings with ties, and the text of every report (week, month, all time) and `/snipes @person` |
 | [`bot/rivals.py`](../bot/rivals.py) | The three `/snipes-rivals` views: top rivalries, one person's rivals, head-to-head |
-| [`bot/tracker.py`](../bot/tracker.py) | `SnipeTracker`: handles events, runs sweeps, decides when the report is due and posts it |
+| [`bot/tracker.py`](../bot/tracker.py) | `SnipeTracker`: handles events, runs sweeps, decides when the weekly and monthly reports are due and posts them |
 | [`bot/main.py`](../bot/main.py) | Command-line entry point, the background loop, and the Slack event and slash command handlers |
 | [`bot/config.py`](../bot/config.py) | Loads settings from environment variables |
 | [`manifest.yaml`](../manifest.yaml) | Slack app definition: permissions, events, slash commands, Socket Mode |
@@ -95,7 +95,6 @@ python -m bot.main --preview month    # ...this month's (or `all` for all time)
 
 ### Ideas for extending it
 
-- **Post the monthly report automatically.** `/snipes-month` already builds it (`report(..., "month", ...)`). Add a second schedule in `maybe_report()` for the 1st of each month.
 - **Semester awards.** `store.snipes(start, end)` works for any time range; add a `"semester"` entry to `PERIODS` in `stats.py`.
 - **Streaks.** Most consecutive days with a snipe. Everything needed is already in the `snipes` table.
 - **Revenge tracking.** Flag when someone snipes back the person who last sniped them, and call out the fastest revenge of the week. `head_to_head()` in `rivals.py` already walks a pair's snipes in order.

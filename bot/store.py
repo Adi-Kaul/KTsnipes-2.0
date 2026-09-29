@@ -1,4 +1,4 @@
-"""SQLite tally of every snipe, plus which weekly reports have already gone out."""
+"""SQLite tally of every snipe, plus which weekly and monthly reports have already gone out."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ class Store:
                 PRIMARY KEY (ts, target)
             );
             CREATE TABLE IF NOT EXISTS reports (
-                week_key TEXT PRIMARY KEY,    -- date the report was due, e.g. 2026-10-04
+                week_key TEXT PRIMARY KEY,    -- weekly: date it was due, e.g. 2026-10-04; monthly: month:2026-09
                 posted_at REAL NOT NULL
             );
             PRAGMA foreign_keys = ON;"""
