@@ -52,6 +52,19 @@ def sniped_counts(snipes: list[Snipe]) -> Counter:
     return Counter(t for s in snipes for t in s.targets)
 
 
+def kd(made: int, got: int) -> float:
+    """Snipes per time sniped. Never sniped counts as sniped once, like a K/D with zero deaths."""
+    return made / max(got, 1)
+
+
+def most_efficient(snipes: list[Snipe], min_snipes: int) -> tuple[str, int, int] | None:
+    """(user, snipes, times sniped) for the best K/D among people with at least min_snipes snipes.
+    Ties go to whoever has more snipes."""
+    made, got = snipe_counts(snipes), sniped_counts(snipes)
+    qualified = [(u, n, got[u]) for u, n in made.items() if n >= min_snipes]
+    return min(qualified, key=lambda r: (-kd(r[1], r[2]), -r[1], r[0]), default=None)
+
+
 def ranked(counter: Counter, limit: int = 3, cap: int = 5) -> list[tuple[int, str, int]]:
     """(rank, user, count) for the top `limit` ranks. Ties share a rank; never more than `cap` rows."""
     rows, rank, prev = [], 0, None
@@ -128,6 +141,10 @@ def plural(n: int, word: str) -> str:
     return f"{n} {word}{'' if n == 1 else 's'}"
 
 
+def kd_text(made: int, got: int) -> str:
+    return f"{kd(made, got):.2f}" if made or got else "—"
+
+
 def board(counter: Counter, limit: int = 3, cap: int = 5) -> str:
     return "\n".join(f"{MEDALS.get(rank, f'{rank}.')} {at(u)} — {n}" for rank, u, n in ranked(counter, limit, cap))
 
@@ -138,6 +155,8 @@ PERIODS = {
     "month": ("Monthly Report", "this month", "%a %b %-d", 5),
     "all": ("All-Time Report", "all time", "%b %-d, %Y", 5),
 }
+# Snipes needed to qualify for "Most efficient", so a lucky 1–0 doesn't win.
+EFFICIENT_MIN = {"week": 3, "month": 5, "all": 10}
 EMPTY = {
     "week": "Zero snipes this week. Nobody's watching their back and nobody's taking the shot. :sleeping:",
     "month": "Zero snipes this month so far. :sleeping:",
@@ -179,6 +198,10 @@ def report(snipes: list[Snipe], period: str, start: float, end: float, tz: ZoneI
     if (bd := best_day(snipes, tz)) and bd[2] >= 2:
         user, day, n = bd
         highlights.append(f":fire: *Best day:* {at(user)} got {plural(n, 'snipe')} on {day:{day_fmt}}")
+    if eff := most_efficient(snipes, EFFICIENT_MIN[period]):
+        user, n, g = eff
+        highlights.append(f":chart_with_upwards_trend: *Most efficient:* {at(user)} — {kd_text(n, g)} K/D "
+                          f"({plural(n, 'snipe')}, sniped {plural(g, 'time')})")
     if mr := most_reacted(snipes):
         victims = " ".join(at(t) for t in mr.targets)
         shot = f"<{permalink(mr.ts)}|this shot>" if permalink else "this shot"
@@ -202,8 +225,8 @@ def weekly_report(snipes: list[Snipe], start: float, end: float, tz: ZoneInfo, p
 def player_card(uid: str, week: list[Snipe], month: list[Snipe], all_time: list[Snipe]) -> str:
     """What /snipes @someone shows."""
     def line(label: str, snipes: list[Snipe]) -> str:
-        return (f"*{label}:* {plural(snipe_counts(snipes)[uid], 'snipe')} · "
-                f"sniped {plural(sniped_counts(snipes)[uid], 'time')}")
+        made, got = snipe_counts(snipes)[uid], sniped_counts(snipes)[uid]
+        return f"*{label}:* {plural(made, 'snipe')} · sniped {plural(got, 'time')} · K/D {kd_text(made, got)}"
 
     lines = [f"{at(uid)}'s snipe record", line("This week", week), line("This month", month),
              line("All time", all_time)]

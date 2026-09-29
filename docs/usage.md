@@ -72,6 +72,7 @@ Every Sunday at 8pm (Detroit time), the bot posts the week's report in #ktsnipes
 > 🥈 @casey — 4
 >
 > 🔥 **Best day:** @alex got 4 snipes on Wednesday
+> 📈 **Most efficient:** @jordan — 3.00 K/D (3 snipes, sniped 1 time)
 > 🤩 **Most reacted:** [this shot] by @sam on @taylor (18 reactions)
 > ⚔️ **Rivalry of the week:** @alex **3–1** @taylor
 > 📅 **Busiest day:** Friday (8 snipes)
@@ -83,6 +84,7 @@ What each part means:
 | **Top Snipers** | Most snipes made this week. Top 3 places. |
 | **Most Sniped** | Most times tagged this week. Top 3 places. |
 | **Best day** | The most snipes one person made in a single day (midnight to midnight). Only shown if it's at least 2. |
+| **Most efficient** | The best K/D: snipes made ÷ times sniped. Never sniped counts as sniped once, so 4–0 is a 4.00. Takes at least 3 snipes to qualify (5 for the monthly report, 10 for all time), so a lucky 1–0 can't win. Ties go to whoever made more snipes. |
 | **Most reacted** | The snipe post with the most total reactions (not counting the bot's 🎯). Links to the post. |
 | **Rivalry of the week** | The two people who sniped each other the most, counting both directions, with the score. Only shown if it's at least 2 total. See [Rivalries](#rivalries). |
 | **Busiest day** | The day of the week with the most snipes overall. Only shown if it's at least 2. |
@@ -111,7 +113,7 @@ Anyone can use these in any channel. **Only you** see the reply, and it doesn't 
 
 ### `/snipes-week`, `/snipes-month`, `/snipes-alltime`
 
-Each one is a full report for its period, in the same format as the Sunday report: top snipers, most sniped, best day, most reacted, rivalry, and busiest day.
+Each one is a full report for its period, in the same format as the Sunday report: top snipers, most sniped, best day, most efficient, most reacted, rivalry, and busiest day.
 
 | Command | Covers | Boards show |
 |---|---|---|
@@ -145,14 +147,15 @@ Someone's full record.
 
 ```
 @alex's snipe record
-This week: 5 snipes · sniped 1 time
-This month: 14 snipes · sniped 3 times
-All time: 41 snipes · sniped 12 times
+This week: 5 snipes · sniped 1 time · K/D 5.00
+This month: 14 snipes · sniped 3 times · K/D 4.67
+All time: 41 snipes · sniped 12 times · K/D 3.42
 🎯 Favorite target: @taylor (9)
 😈 Nemesis: @sam (5)
 ⚔️ Top rival: @sam (7–5)
 ```
 
+- **K/D:** snipes made ÷ times sniped for that period. Never sniped counts as sniped once. Shows `—` if they have neither.
 - **Favorite target:** who they've sniped the most, all time.
 - **Nemesis:** who has sniped *them* the most, all time.
 - **Top rival:** their biggest [rivalry](#rivalries), with the score from their side (their snipes first).

@@ -5,7 +5,7 @@ from slack_sdk.errors import SlackApiError
 
 from bot.config import Config, load_config
 from bot.snipes import Snipe, parse_snipe
-from bot.stats import (best_day, last_month_end_due, last_report_due, month_start, month_window, player_card, ranked, report, sniped_counts,
+from bot.stats import (best_day, kd, most_efficient, last_month_end_due, last_report_due, month_start, month_window, player_card, ranked, report, sniped_counts,
                        rivalries, snipe_counts, week_window, weekly_report)
 from bot.rivals import head_to_head, person_rivals, rivals_board
 from bot.store import Store
@@ -89,6 +89,19 @@ def test_weekly_report_contents():
     assert "Best day:* <@A> got 3 snipes on Monday" in text
     assert f"<https://x/{WEEK[1].ts}|this shot>" in text and "9 reactions" in text
     assert "Rivalry of the week:* <@A> *2–1* <@B>" in text
+    assert "Most efficient:* <@A> — 3.00 K/D (3 snipes, sniped 1 time)" in text
+
+
+def test_most_efficient_needs_enough_snipes_and_breaks_ties_on_volume():
+    assert kd(4, 0) == 4 and kd(3, 2) == 1.5
+    lucky = [Snipe("1", "L", ["X"], 0)]                              # 1–0: not enough snipes to qualify
+    steady = [Snipe(str(i), "S", ["X"], 0) for i in range(2, 8)]     # 6–1
+    bigger = [Snipe(str(i), "B", ["X"], 0) for i in range(8, 20)]    # 12–2, same 6.00 K/D, more snipes
+    back = [Snipe("20", "X", ["S"], 0), Snipe("21", "X", ["B", "B2"], 0), Snipe("22", "Y", ["B"], 0)]
+    assert most_efficient(lucky + steady + back, 5) == ("S", 6, 1)
+    assert most_efficient(lucky + steady + bigger + back, 5) == ("B", 12, 2)
+    assert most_efficient(lucky, 5) is None
+    assert "Most efficient" not in report(lucky, "week", 0, 1e10, TZ)
 
 
 def test_empty_week():
@@ -97,9 +110,10 @@ def test_empty_week():
 
 def test_player_card():
     card = player_card("B", WEEK[2:], WEEK[1:], WEEK)
-    assert "*This week:* 1 snipe · sniped 1 time" in card
-    assert "*This month:* 1 snipe · sniped 2 times" in card
-    assert "*All time:* 1 snipe · sniped 3 times" in card
+    assert "*This week:* 1 snipe · sniped 1 time · K/D 1.00" in card
+    assert "*This month:* 1 snipe · sniped 2 times · K/D 0.50" in card
+    assert "*All time:* 1 snipe · sniped 3 times · K/D 0.33" in card
+    assert "*This week:* 0 snipes · sniped 0 times · K/D —" in player_card("Z", [], [], WEEK)
     assert "Nemesis: <@A> (2)" in card
     assert "Top rival: <@A> (1–2)" in card
 
