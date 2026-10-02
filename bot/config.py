@@ -29,8 +29,8 @@ class Config:
     # Prefix for posted reports: "<!channel>", "<!here>", or "" for no mention.
     report_mention: str = "<!channel>"
 
-    # Emoji the bot reacts with when it counts a snipe. Empty = don't react.
-    confirm_emoji: str = "dart"
+    # Emoji the bot reacts with when it counts a snipe. Empty (the default) = don't react.
+    confirm_emoji: str = ""
     # How often to re-read the channel to catch edits, deletions, reaction counts, and anything missed while offline.
     sweep_minutes: float = 10
     # How far back each sweep looks.
@@ -71,7 +71,7 @@ def load_config() -> Config:
         report_time=report_time,
         monthly_report=_env("MONTHLY_REPORT", "1").lower() not in ("0", "false", "no"),
         report_mention=MENTIONS[mention],
-        confirm_emoji=_env("CONFIRM_EMOJI", "dart").strip(":"),
+        confirm_emoji=_env("CONFIRM_EMOJI", "").strip(":"),
         sweep_minutes=float(_env("SWEEP_MINUTES", "10")),
         sweep_days=float(_env("SWEEP_DAYS", "8")),
         db_path=_env("DB_PATH", "snipes.db"),
