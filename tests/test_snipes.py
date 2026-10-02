@@ -248,14 +248,14 @@ class FakeClient:
         self.posted.append((channel, text))
 
 
-def make(client, now):
-    return SnipeTracker(client, Config(), Store(":memory:"), "CSNIPE", "CSNIPE", "UB", clock=lambda: now[0])
+def make(client, now, **cfg):
+    return SnipeTracker(client, Config(**cfg), Store(":memory:"), "CSNIPE", "CSNIPE", "UB", clock=lambda: now[0])
 
 
 def test_events_add_edit_delete():
     now = [float(ts(2026, 10, 1))]
     client = FakeClient()
-    tr = make(client, now)
+    tr = make(client, now, confirm_emoji="dart")
     t = ts(2026, 10, 1, 11)
     tr.on_message_event({**post(t), "channel": "CSNIPE"})
     tr.on_message_event({**post(t), "channel": "COTHER"})
@@ -298,6 +298,14 @@ def test_period_reports_from_tracker():
     assert "*2 snipes* this month" in tr.period_report("month")
     assert "*3 snipes* all time" in tr.period_report("all")
     assert "*This month:* 2 snipes" in tr.player_card("U1")
+
+
+def test_doesnt_react_by_default():
+    now = [float(ts(2026, 10, 1))]
+    client = FakeClient()
+    tr = make(client, now)
+    tr.on_message_event({**post(ts(2026, 10, 1, 11)), "channel": "CSNIPE"})
+    assert snipe_counts(tr.store.snipes()) == {"U1": 1} and client.reacted == []
 
 
 def test_backfill_doesnt_react():
