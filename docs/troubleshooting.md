@@ -32,14 +32,14 @@ Use a full day name (`sunday`) and 24-hour time (`20:00`, not `8pm`). See [confi
 **`Slack API error: not_in_channel`**
 The bot isn't a member of #ktsnipes. Run `/invite @KTsnipes 2.0` there.
 
-**Someone posted a snipe and the bot didn't react 🎯**
+**Someone posted a snipe and it didn't count**
 Check each of these in order:
 1. Is the bot running? Look for `Bolt app is running!` in the logs.
 2. Is there a **real** @tag? The name has to turn blue. Typing `@alex` without picking Alex from the popup is just text.
 3. Is the attachment an **image**? Videos, GIF links, and other files don't count.
 4. Was it posted **in a thread**? Thread replies only count with "Also send to channel" checked.
 5. Did they tag **themselves** or a **bot**? Those don't count.
-6. Is `DRY_RUN` on, or `CONFIRM_EMOJI` empty? Then the snipe is counted but the bot doesn't react. Check `/snipes-week`.
+6. Expecting a 🎯? The bot only reacts when `CONFIRM_EMOJI` is set (it's off by default) and `DRY_RUN` is off. Check `/snipes-week` instead.
 
 If none of those apply, look in the logs for a `Snipe …: U… sniped U…` line. If it's there, the snipe counted and only the reaction failed; the log line after it says why.
 

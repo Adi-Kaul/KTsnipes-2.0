@@ -26,7 +26,7 @@ flowchart LR
 
 The bot keeps its tally in sync with the channel in two ways:
 
-1. **Events (instant).** Slack sends a `message` event for every new post, edit (`message_changed`), and deletion (`message_deleted`) in #ktsnipes. The bot re-evaluates that one message: if it's a snipe, it's saved (and replaces any older version of it); if it isn't anymore, it's removed. New snipes get a 🎯 reaction.
+1. **Events (instant).** Slack sends a `message` event for every new post, edit (`message_changed`), and deletion (`message_deleted`) in #ktsnipes. The bot re-evaluates that one message: if it's a snipe, it's saved (and replaces any older version of it); if it isn't anymore, it's removed. If `CONFIRM_EMOJI` is set, new snipes get that reaction.
 2. **Sweeps (safety net).** Every `SWEEP_MINUTES`, the bot reads the last `SWEEP_DAYS` of the channel (`conversations.history`) and does the same thing for every message. Anything in the database from that window that's no longer in the channel is removed. Sweeps catch whatever happened while the bot was offline, and they're how reaction counts stay up to date.
 
 The tally is keyed by each message's timestamp (`ts`), so saving the same message twice never double-counts it.

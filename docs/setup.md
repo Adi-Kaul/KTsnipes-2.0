@@ -26,7 +26,7 @@ The manifest sets up everything the bot needs: its name, the `/snipes` commands,
 | `channels:read`, `groups:read` | To find the channel by name |
 | `files:read` | To see that a post has a photo attached |
 | `users:read` | To tell people apart from bots, so tagging a bot doesn't count |
-| `reactions:write` | To react 🎯 to snipes it counted |
+| `reactions:write` | To react 🎯 to snipes it counted, if you turn on `CONFIRM_EMOJI` (off by default) |
 | `chat:write` | To post the weekly report |
 | `commands` | For `/snipes`, `/snipes-week`, `/snipes-month`, `/snipes-alltime`, and `/snipes-rivals` |
 
@@ -118,7 +118,7 @@ This runs the bot for real, but the weekly report goes to the logs instead of Sl
 DRY_RUN=1 python -m bot.main
 ```
 
-Dry run also turns off the 🎯 reaction.
+Dry run also turns off the 🎯 reaction, if you turned it on.
 
 ### Option C: the whole thing in a test channel
 
@@ -130,7 +130,7 @@ This is the best way to see exactly what everyone will get, without touching #kt
    SNIPES_CHANNEL=bot-test DB_PATH=test.db REPORT_DAY=$(date +%A) REPORT_TIME=21:05 python -m bot.main
    ```
    (Replace `21:05` with your time. `REPORT_DAY=$(date +%A)` sets it to today.)
-3. In `#bot-test`, post a photo and tag a friend (or two). Within a second you'll see the bot react 🎯.
+3. In `#bot-test`, post a photo and tag a friend (or two). Run `/snipes-week` and it's on the board. (Add `CONFIRM_EMOJI=dart` to the command above if you want to see the 🎯 reaction too.)
 4. Try `/snipes-week`, `/snipes-month`, `/snipes-alltime`, `/snipes @friend`, and `/snipes-rivals @you @friend`.
 5. Edit the post to remove the tag. On the next `/snipes-week`, it's off the board.
 6. When the report time hits, the report shows up in `#bot-test` (within a minute).

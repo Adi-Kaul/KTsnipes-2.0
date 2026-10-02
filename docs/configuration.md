@@ -40,7 +40,7 @@ The bot checks whether a report is due once a minute, so it posts within a minut
 
 | Variable | Default | Description |
 |---|---|---|
-| `CONFIRM_EMOJI` | `dart` | The emoji the bot reacts with when it counts a snipe, without colons. Set it to empty (`CONFIRM_EMOJI=`) to turn reactions off. The bot's own reaction never counts toward "Most reacted". |
+| `CONFIRM_EMOJI` | *(empty)* | The emoji the bot reacts with when it counts a snipe, without colons (e.g. `dart`). Empty means no reactions. The bot's own reaction never counts toward "Most reacted". |
 | `SWEEP_MINUTES` | `10` | How often the bot re-reads the channel. Edits and deletions are picked up instantly through Slack events; the sweep is a safety net for anything missed while the bot was offline, and it's how reaction counts stay fresh. |
 | `SWEEP_DAYS` | `8` | How far back each sweep reads. Keep it at 7 or more so the whole report week is re-checked. |
 
