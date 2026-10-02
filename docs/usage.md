@@ -6,7 +6,7 @@ This page is for everyone in #ktsnipes: what counts, how the tally works, and th
 
 1. See a brother out in the wild. Take the photo.
 2. Post it in **#ktsnipes** and **@tag** them.
-3. The bot reacts with 🎯. That means it counted.
+3. That's it. The bot counts it quietly, without reacting to your post.
 4. Every **Sunday at 8pm**, the bot posts the weekly snipe report, and on the **last day of each month** at 8pm, the monthly one.
 
 ## Snipe vs. sniped
@@ -40,9 +40,9 @@ These don't count:
 - **Tagging a bot.**
 - **Tagging someone twice in one post.** They're counted once.
 
-### The 🎯 reaction
+### Checking that it counted
 
-When the bot counts a snipe, it reacts to the post with 🎯. If you don't see it within a few seconds, the post didn't count. Check the list above. The 🎯 doesn't count toward the post's reaction total in the report.
+The bot doesn't react to snipes, so it won't clutter your posts. To check that one counted, run `/snipes @you` or `/snipes-week`. If it's not there, check the list above. (An admin can turn on a 🎯 confirmation with `CONFIRM_EMOJI`. The bot's own reaction never counts toward the report's reaction totals.)
 
 ### Edits and deletions
 
@@ -213,7 +213,7 @@ The dates link to the posts. This works for any two people, even if they've only
 
 ## FAQ
 
-**I posted a snipe and the bot didn't react.**
+**I posted a snipe and it's not on `/snipes-week`.**
 It didn't count. The usual reasons: you didn't @tag anyone (typing a name without picking them from the popup doesn't make a real tag), the photo was posted in a thread, or it was a video. Fix it by editing the post to add a real @tag.
 
 **Does a group photo count as multiple snipes?**

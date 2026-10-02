@@ -2,7 +2,7 @@
 
 A Slack bot that keeps the tally for **#ktsnipes**.
 
-Post a photo in #ktsnipes and **@tag** who's in it. That's a snipe. The bot reacts with 🎯 so you know it counted, keeps a running tally, every **Sunday at 8pm** posts the week's snipe report, and on the **last day of each month** posts the month's.
+Post a photo in #ktsnipes and **@tag** who's in it. That's a snipe. The bot quietly keeps a running tally, every **Sunday at 8pm** posts the week's snipe report, and on the **last day of each month** posts the month's.
 
 **Snipe vs. sniped** are two separate tallies:
 
@@ -56,7 +56,7 @@ You'll need to create the Slack app first. It takes a few minutes with the inclu
 |---|---|
 | **[Setup](docs/setup.md)** | Creating the Slack app, getting tokens, counting past snipes, testing in a private channel |
 | **[Using the bot](docs/usage.md)** | What counts as a snipe, the Sunday report, the slash commands, and an FAQ for members |
-| **[Configuration](docs/configuration.md)** | Every setting: channel, report day and time, timezone, the 🎯 reaction, and more |
+| **[Configuration](docs/configuration.md)** | Every setting: channel, report day and time, timezone, the optional 🎯 reaction, and more |
 | **[Deployment](docs/deployment.md)** | Running it 24/7 on Railway, Fly.io, a Mac, a Raspberry Pi, or Docker |
 | **[Troubleshooting](docs/troubleshooting.md)** | Error messages, snipes that didn't count, and what to do about them |
 | **[How it works](docs/how-it-works.md)** | Architecture, code layout, tests, changing what counts, and ideas for extending it |
@@ -64,7 +64,7 @@ You'll need to create the Slack app first. It takes a few minutes with the inclu
 ## Features
 
 - **Counts on its own.** No commands to log a snipe. Post the photo, tag the person, done.
-- **Confirms every snipe.** The 🎯 reaction tells you it counted. No 🎯 means something's off (usually a missing tag).
+- **Stays out of the way.** No reactions or replies on your posts. Run `/snipes @you` to see what counted (or set `CONFIRM_EMOJI` to have it react 🎯).
 - **Keeps up with edits.** Add a tag later and it counts. Delete the post and it comes off the board.
 - **Weekly and monthly reports, plus an all-time board.** Top snipers, most sniped, best single day, most efficient (K/D), most reacted-to snipe, rivalry of the week, and busiest day.
 - **Rivalries.** Every pair who's traded snipes gets a head-to-head score (`@alex 7–5 @sam`), with first blood and the latest hit.
